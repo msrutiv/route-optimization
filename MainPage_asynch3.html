@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+    <!--This application is.....-->
+        <meta name="viewport" content="initial-scale=1.0, user-scalable=no" />
+        <title>
+            Route App
+        </title>
+        <script type="text/javascript"  src="http://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+        <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD5WJ68msak0jtYDc3lpSStUfg3PSbfr_w"></script>
+        <!--    <link type="text/css" rel="stylesheet" href="stylesheet.css" /> -->
+    </head>
+
+    <body>
+        <div id="head"> </div>
+        <h1 id="title"> Route App </h1>
+
+        <div id="map-canvas"></div>
+        <div id="directions-panel"></div>
+        <!--<h3> For all you busy ladies out there, we help you plan your day so you can visit everyone's houses! And keep <em>everyone</em> happy!</h3> 
+        <script type="text/javascript" src="http://code.jquery.com/jquery-latest.js">
+        </script>
+    -->
+     <!-- <body>
+     <h2> Coming Soon...</h2> -->
+
+        <form id='address-form'>
+            Enter in your current address
+            <input id="user-addr" style='display:inline'> 
+        </form>
+        <br>
+        <div class='input-form'>
+            Next Address:
+            <form class = 'house-form' id='addr1'>
+                <input class="house-addr"> 
+                Start Time:
+                <select class='house-start'>
+                    <option> 5pm </option>
+                    <option> 6pm </option>
+                    <option> 7pm </option>
+                    <option> 8pm </option>
+                </select>
+                End Time
+                <select class='house-end'>
+                    <option> 5pm </option>
+                    <option> 6pm </option>
+                    <option> 7pm </option>
+                    <option> 8pm </option>
+                </select>
+            </form>
+        </div>
+        <button id='add-house'>Add House</button>
+        <br>
+        <button id='submit'>Submit</button>
+
+        <div id="foot"> </div> 
+    </body>
+
+    <style type="text/css">
+
+        html { height: 100% }
+        body { height: 100%; margin: 0; padding: 0 }
+        p {display: inline}
+        #map-canvas { height: 50%; width:50%;}
+
+        * {text-align: center;}
+
+        #head {
+            background-color: #eee;
+            height: 40px;
+        }
+
+        #foot {
+            background-color: #eee;
+            height:40px;
+        }
+
+    </style>
+
+
+    <script type='text/javascript'>
+        $(document).ready(function() {
+            google.maps.event.addDomListener(window, 'load', initialize);
+           //each house is object with start and end time
+            var house = {
+                address: 'address',
+                start: 5,
+                end: 7,
+                //duration: 10 //this feature will be added later
+            };
+            var directionsDisplay;
+            var houses = [{address: '350 Fifth Avenue New York, NY', start:7, end:8}, {address:'1 Infinite Loop Palo Alto, CA', start:5, end:6}, 
+                {address:'11 Wall Street New York, NY ', start:6, end:7}, {address:'1600 Pennsylvania Ave, Washington, DC', start:6, end:7}];
+                //figure how how to write jquery/js object constructor
+
+            var house_endtime_sorted = sortByEndTime(houses);
+            getDupTimes(house_endtime_sorted);
+        });
+        //Google Maps Display Stuff
+        function initialize() {
+            directionsDisplay = new google.maps.DirectionsRenderer();
+            var mapOptions = {
+                center: new google.maps.LatLng(-34.397, 150.644),
+                zoom: 8
+            };
+            var map = new google.maps.Map(document.getElementById("map-canvas"), mapOptions);
+            directionsDisplay.setMap(map);
+        }
+
+       /* function calcRoute() {
+            var start = document.getElementById("start").value;
+            var end = document.getElementById("end").value;
+            var waypts = [];
+            var checkboxArray = document.getElementById("waypoints");
+            for (var i = 0; i < checkboxArray.length; i++) {
+                if (checkboxArray.options[i].selected == true) {
+                    waypts.push({
+                        location:checkboxArray[i].value,
+                        stopover:true
+                    });
+                }
+            }
+        } */
+
+      function getAddresses()
+      {
+            //pull addresses from DOM elements
+            //put them into special object
+        }
+
+
+        function sortByEndTime(houses)
+        {
+
+
+            //var houses = [houseA, houseB];
+            function compareEndTime(a, b) {
+                return ((a.end < b.end) ? -1 : ((a.end > b.end) ? 1:0));
+            }
+            var house_endtime_sorted = houses.sort(compareEndTime); //array with house objects sorted by the end time
+            console.log(house_endtime_sorted);
+            return house_endtime_sorted;
+        }
+
+        function getDupTimes(house_endtime_sorted) {
+            var house_dup_endtime = [];
+            var prev_end = 0;
+                //if the end times are the same, we want to sort by the distance from the prev house to the potential house (shortest distance wins)
+                //get all addresses with duplicate ending times into a single array
+                $(house_endtime_sorted).each(function (i) {
+                    var tempArray = $.grep(house_endtime_sorted, function(j, k) {
+                        return house_endtime_sorted[i].end == j.end;
+                    });
+                    if ((tempArray.length > 1) && (house_endtime_sorted[i].end != prev_end))
+                    {
+                        house_dup_endtime.push({index: i, end: house_endtime_sorted[i].end, dup_times:tempArray});
+                        prev_end = house_endtime_sorted[i].end
+                    }
+                    
+
+                    /*
+                    if (i < house_endtime_sorted.length-1)
+                    {
+                        //function that gathers all the houses that have same ending times, even if they are different
+                        if (house_endtime_sorted[i+1].end == house_endtime_sorted[i].end)
+                        {
+                            //create object with each set of houses with same end time
+                            house_dup_endtime.push(i);
+                            house_dup_endtime.push(house_endtime_sorted[i+1]);
+                            house_dup_endtime.push(house_endtime_sorted[i]);
+                        }
+                    }*/
+                });
+
+    console.log(house_dup_endtime);
+    sortDupByDistance(house_dup_endtime, house_endtime_sorted);
+    }
+
+    function sortDupByDistance(house_dup_endtime, house_endtime_sorted) {
+            $(house_dup_endtime).each(function(n){  //house_dup_endtime is array of objects, each object is set of houses with same end time
+
+
+
+            //Distance Matrix stuffs
+            var origin1 = house_endtime_sorted[house_dup_endtime[n].index-1].address;//'1 Infinite Loop, Palo Alto, CA'; //new google.maps.LatLng(55.930385, -3.118425);
+            var destinations = $.map(house_dup_endtime[n].dup_times, function(a, b){
+                return a.address; //"Stockholm, Sweden";
+            });
+            //var destinationB = house_dup_endtime[i].dup_times[0].address;//new google.maps.LatLng(50.087692, 14.421150);
+            var service = new google.maps.DistanceMatrixService();
+            service.getDistanceMatrix(
+            {
+                origins: [origin1],
+                destinations: destinations, //[destinationA, destinationB],
+                travelMode: google.maps.TravelMode.DRIVING,
+           // }, parseJson);
+    }, function(response, status){
+        if (status == google.maps.DistanceMatrixStatus.OK) {
+           var origins = response.originAddresses;
+           var destinations = response.destinationAddresses;
+           console.log(origins);
+           console.log(destinations);
+           for (var i = 0; i < origins.length; i++) {
+               var results = response.rows[i].elements;
+               for (var j = 0; j < results.length; j++) {
+                var element = results[j];
+                console.log(element);
+                var distance = element.distance.text;
+                var duration = element.duration.text;
+                var from = origins[i];
+                var to = destinations[j];
+            }
+        }
+        for (var k=0; k<results.length; k++)
+        {
+            var tempObject = {
+                durFromPrev: results[k].duration.value
+            }
+            $.extend(house_dup_endtime[n].dup_times[k], tempObject);
+        }
+        console.log('after');
+            //console.log(newresults);
+            console.log(house_dup_endtime);
+             //var house_end_dist_sorted = [];
+             $(house_dup_endtime).each(function(n){ 
+                function compareDuration (a, b)
+                {
+                    console.log(a);
+                    return ((a.durFromPrev < b.durFromPrev) ? -1 : ((a.durFromPrev > b.durFromPrev) ? 1:0));
+                }
+
+                house_dup_endtime[n].dup_times = house_dup_endtime[n].dup_times.sort(compareDuration);
+                console.log(house_dup_endtime);
+                house_endtime_sorted.splice.apply(house_endtime_sorted,[house_dup_endtime[n].index, house_dup_endtime[n].dup_times.length].concat(house_dup_endtime[n].dup_times));
+            });
+             console.log(house_endtime_sorted);
+        ///DIRECTIONS API
+       var request = {
+          origin: house_endtime_sorted[0].address,
+          destination: house_endtime_sorted[3].address,
+          waypoints: [{location:house_endtime_sorted[1].address, stopover: true}, {location: house_endtime_sorted[2].address, stopover:true}],
+          //optimizeWaypoints: true,
+          travelMode: google.maps.TravelMode.DRIVING
+      };
+      var directionsService = new google.maps.DirectionsService();
+      directionsService.route(request, function(response, status) {
+        if (status == google.maps.DirectionsStatus.OK) {
+          directionsDisplay.setDirections(response);
+          var route = response.routes[0];
+          var summaryPanel = document.getElementById("directions-panel");
+          summaryPanel.innerHTML = "";
+          // For each route, display summary information.
+          for (var i = 0; i < route.legs.length; i++) {
+            var routeSegment = i+1;
+            summaryPanel.innerHTML += "<b>Route Segment: " + routeSegment + "</b><br />";
+            summaryPanel.innerHTML += route.legs[i].start_address + " to ";
+            summaryPanel.innerHTML += route.legs[i].end_address + "<br />";
+            summaryPanel.innerHTML += route.legs[i].distance.text + "<br /><br />";
+        }
+    }
+      }); ///End DIRECTIONS API
+    }
+    });//End Service Matrix
+    });
+    } 
+        //$(document).ready(function(){
+
+            /*for (var i=0; i<house_dup_endtime.length; i++)
+            {
+                if ($.isNumeric(house_dup_endtime[i]))
+
+            }*/
+
+
+       /* function parseJson(response, status) {
+            if (status == google.maps.DistanceMatrixStatus.OK) {
+             var origins = response.originAddresses;
+             var destinations = response.destinationAddresses;
+             console.log(origins);
+             console.log(destinations);
+             for (var i = 0; i < origins.length; i++) {
+             var results = response.rows[i].elements;
+              for (var j = 0; j < results.length; j++) {
+                var element = results[j];
+                console.log(element);
+                var distance = element.distance.text;
+                var duration = element.duration.text;
+                var from = origins[i];
+                var to = destinations[j];
+            }
+        }
+                for (var k=0; k<results.length; k++)
+            {
+                var tempObject = {
+                    durFromPrev: $(results[k].duration.value)
+                }
+                $.extend(house_dup_endtime[n].dup_times[k], tempObject);
+            }
+                    console.log('after');
+            //console.log(newresults);
+            console.log(house_dup_endtime);
+    }
+
+
+
+
+    }*/
+
+
+            //});
+    /*
+
+    */
+
+            //the index helps keep the duplicate sets separate, look for a number instead of an object until the end
+            //keep arrays of each set of duplicate times
+            //have 1 call to distance matrix(maybe not), have good system to keep track of which distance is which
+            //sort the arrays based on the duration measured
+            //use the index from earlier to know where to insert the sorted array
+
+                //take those houses w/ duplicate end times and make distance matrix with those and previous house in sorted list
+
+                
+
+            /*places that end earliest get highest priority and so on
+            then for ties we find distance between the previous and the next one
+            //USE GOOGLE MAPS DISTANCE MATRIX & DIRECTIONS APIs
+
+            OR
+
+            //find the shortest path using kruskal's algorithm and then optimize for time
+            doesn't make sense cuz higher priority is time, not distance as much
+            */
+
+            //var house_endtime_sorted = $.sorted();
+
+            /*var house_endtime_conflict = $.grep(function(n, i) {
+                return n.end;
+            });*/
+
+/*function House (address, start, end){
+    this.address = address,
+    this.start = start,
+    this.end = end 
+}*/
+
+    $('#submit').click(function() {
+        var useraddr = $('#user-addr').val();
+        console.log(useraddr);
+        var addresses = [];
+        $('.house-form').each(function(n, m){
+            console.log(m);
+            var tempObject = {
+                address: $(".house-addr", m).val(),
+                start: parseInt(($(".house-start", m).val()).slice(0,-2), 10),
+                end: parseInt(($(".house-end", m).val()).slice(0,-2), 10)
+            };
+            addresses[n] = tempObject;
+            //var tempObject = new House($(".house-addr", m).val(), $(".house-start", m).val(), $(".house-end", m).val());
+            console.log(tempObject);
+        });
+        console.log(addresses);
+               // var addresses = $('.house-form').find('input[type = text')
+    });
+    var count = 2;
+        //this will come later, let people add 4 houses for now
+        $('#add-house').click(function() {
+
+            $('.input-form').append( "<form class ='house-form' id='addr"+count+"'><input class='house-addr'></form>" );
+            $('#addr'+count).append("<p>Start Time:</p> <select class='house-start "+count+"'></select>");
+            $('#addr'+count).append("<p>End Time:</p> <select class='house-end "+count+"'></select>");
+            console.log('.house-end'+' '+count);
+            $('.'+count).append("<option>5pm</option><option>6pm</option><option>7pm</option><option>8pm</option>");
+            //$('.house-start .'+count).append("<option>5pm</option><option>6pm</option><option>7pm</option><option>8pm</option>");
+            //$('.house-form').append( "<input class='house-addr'>" );
+            count++;
+            console.log(count);
+
+
+        });
+
+        //});
+    </script>
+</html>
